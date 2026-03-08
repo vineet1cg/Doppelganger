@@ -11,6 +11,14 @@ import * as THREE from 'three';
 export default function RealisticAvatar({ measurements = {}, outfitColors = {} }) {
     // Load the GLTF. The path must be relative to the public folder.
     const { scene, animations, nodes, materials } = useGLTF('/models/avatar.glb');
+    const shirtModel = useGLTF('/models/shirt_baked.glb');
+
+    useEffect(() => {
+        if (shirtModel?.nodes?.T_Shirt_male?.geometry) {
+            shirtModel.nodes.T_Shirt_male.geometry.computeBoundingBox();
+            console.log("SHIRT BOUNDING BOX:", JSON.stringify(shirtModel.nodes.T_Shirt_male.geometry.boundingBox));
+        }
+    }, [shirtModel]);
 
     // Setup idle animation if present
     const { actions } = useAnimations(animations, scene);
@@ -121,18 +129,17 @@ export default function RealisticAvatar({ measurements = {}, outfitColors = {} }
     // Extract dynamic 3D parts based on active outfit
     const outerwearParts = nodes?.mixamorigSpine2 && outfitColors['outerwear'] ? (
         createPortal(
-            <group position={[0, 15, 5]} rotation={[0.2, 0, 0]}>
-                {/* Chest Armor Plate */}
-                <mesh castShadow receiveShadow>
-                    <boxGeometry args={[35, 25, 10]} />
-                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.2} metalness={0.8} />
+            <group position={[0, -2, 2]} rotation={[0, 0, 0]}>
+                {/* Real T-Shirt Model mapped to act as Outerwear / Jacket */}
+                <mesh castShadow receiveShadow geometry={shirtModel?.nodes?.T_Shirt_male?.geometry} scale={[105, 105, 105]}>
+                    <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.6} metalness={0.1} />
                 </mesh>
                 {/* Shoulder Guards */}
-                <mesh position={[-20, 10, -5]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
+                <mesh position={[-20, 25, -5]} rotation={[0, 0, 0.4]} castShadow receiveShadow>
                     <cylinderGeometry args={[8, 8, 15, 16]} />
                     <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.3} metalness={0.7} />
                 </mesh>
-                <mesh position={[20, 10, -5]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
+                <mesh position={[20, 25, -5]} rotation={[0, 0, -0.4]} castShadow receiveShadow>
                     <cylinderGeometry args={[8, 8, 15, 16]} />
                     <meshStandardMaterial color={currentColors.current.outerwear} roughness={0.3} metalness={0.7} />
                 </mesh>
@@ -173,11 +180,10 @@ export default function RealisticAvatar({ measurements = {}, outfitColors = {} }
 
     const shirtParts = nodes?.mixamorigSpine2 && outfitColors['shirt'] ? (
         createPortal(
-            <group position={[0, 8, 8]}>
-                {/* Glowing Core reactor / Base Shirt layer proxy */}
-                <mesh castShadow receiveShadow>
-                    <cylinderGeometry args={[8, 8, 4, 32]} />
-                    <meshStandardMaterial color={currentColors.current.shirt} emissive={currentColors.current.shirt} emissiveIntensity={0.8} />
+            <group position={[0, -2, 2]} rotation={[0, 0, 0]}>
+                {/* Real T-Shirt Model mapped to act as Shirt */}
+                <mesh castShadow receiveShadow geometry={shirtModel?.nodes?.T_Shirt_male?.geometry} scale={[95, 95, 95]}>
+                    <meshStandardMaterial color={currentColors.current.shirt} roughness={0.8} metalness={0.1} />
                 </mesh>
             </group>,
             nodes.mixamorigSpine2
@@ -190,16 +196,36 @@ export default function RealisticAvatar({ measurements = {}, outfitColors = {} }
     const footwearParts = leftFootNode && rightFootNode && outfitColors['footwear'] ? (
         <>
             {createPortal(
-                <group position={[0, -5, 5]}>
-                    <boxGeometry args={[10, 12, 25]} />
-                    <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} />
+                <group position={[0, 0, 4]}>
+                    <mesh position={[0, 6, -2]} castShadow>
+                        <cylinderGeometry args={[4.5, 4, 12, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.6} metalness={0.2} />
+                    </mesh>
+                    <mesh position={[0, -2, 2]} castShadow>
+                        <boxGeometry args={[10, 6, 18]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
+                    <mesh position={[0, -2, 11]} castShadow>
+                        <sphereGeometry args={[5, 16, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
                 </group>,
                 leftFootNode
             )}
             {createPortal(
-                <group position={[0, -5, 5]}>
-                    <boxGeometry args={[10, 12, 25]} />
-                    <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} />
+                <group position={[0, 0, 4]}>
+                    <mesh position={[0, 6, -2]} castShadow>
+                        <cylinderGeometry args={[4.5, 4, 12, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.6} metalness={0.2} />
+                    </mesh>
+                    <mesh position={[0, -2, 2]} castShadow>
+                        <boxGeometry args={[10, 6, 18]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
+                    <mesh position={[0, -2, 11]} castShadow>
+                        <sphereGeometry args={[5, 16, 16]} />
+                        <meshStandardMaterial color={currentColors.current.footwear} roughness={0.8} metalness={0.1} />
+                    </mesh>
                 </group>,
                 rightFootNode
             )}
@@ -219,3 +245,4 @@ export default function RealisticAvatar({ measurements = {}, outfitColors = {} }
 }
 
 useGLTF.preload('/models/avatar.glb');
+useGLTF.preload('/models/shirt_baked.glb');

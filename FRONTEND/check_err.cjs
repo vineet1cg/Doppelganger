@@ -5,9 +5,7 @@ const puppeteer = require('puppeteer');
     const page = await browser.newPage();
 
     page.on('console', msg => {
-        if (msg.type() === 'error') {
-            console.error('BROWSER ERROR CONSOLE:', msg.text());
-        }
+        console.log('BROWSER CONSOLE:', msg.text());
     });
     page.on('pageerror', err => {
         console.error('BROWSER PAGE ERROR:', err.message);
